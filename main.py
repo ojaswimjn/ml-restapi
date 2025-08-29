@@ -4,6 +4,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from pathlib import Path
 from file_validation import DocumentValidator
 from chunking import document_based_chunking
+from encoding import chunk_encoding
 
 import uuid, shutil, PyPDF2
 
@@ -69,6 +70,8 @@ async def create_upload_singlefile(
         text = extract_text_from_file(file_path)
         if strategy == "document":
             chunks = document_based_chunking(text)
+            embedding = chunk_encoding(chunks)
+
         else:  # strategy == "fixed"
             chunks = fixed_overlap_chunking(text, chunk_size=max_chunk_size, overlap=overlap)
     except Exception as e:
