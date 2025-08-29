@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from pathlib import Path
 from file_validation import DocumentValidator
+from chunking import document_based_chunking
 
-import uuid
+import uuid, shutil, PyPDF2
 
 #create upload directory
 UPLOAD_DIR = Path("uploads")
@@ -15,13 +16,30 @@ app = FastAPI()
 doc_validator = DocumentValidator()
 
 
+def extract_text_from_file(file_path: Path) -> str:
+    if file_path.suffix.lower() == ".txt":
+        return file_path.read_text(encoding="utf-8", errors="ignore")
+
+    elif file_path.suffix.lower() == ".pdf":
+        text = ""
+        with open (file_path, "rb") as file:
+            reader = PyPDF2.PdfReader(file)
+            for page in reader.pages:
+                text += (page.extract_text() or "") + "\n\n"
+        return text
+
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 
 @app.post("/uploadfile/single")
-async def create_upload_singlefile(file: UploadFile = File(...)):
+async def create_upload_singlefile(
+    file: UploadFile = File(...),
+    strategy: str = Query("document", regex="^(document|fixed)$"),
+
+    ):
     
     validation = await doc_validator.validate_file(file)
     if not validation["valid"]:
@@ -45,6 +63,18 @@ async def create_upload_singlefile(file: UploadFile = File(...)):
         status_code = 500,
         detail = f"Failed to save file: {str(e)}"
 
+    chunks = []
+    
+    try:
+        text = extract_text_from_file(file_path)
+        if strategy == "document":
+            chunks = document_based_chunking(text)
+        else:  # strategy == "fixed"
+            chunks = fixed_overlap_chunking(text, chunk_size=max_chunk_size, overlap=overlap)
+    except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to chunk file: {str(e)}")
+
+
     return {
         "sucsess":True,
         "original_filename": file.filename,
@@ -55,7 +85,11 @@ async def create_upload_singlefile(file: UploadFile = File(...)):
 
         "size": file.size,
 
-        "location": str(file_path)
+        "location": str(file_path),
+        "chunking": {
+            "count": len(chunks),
+        },
+        "chunks": chunks,
 
     }
 # @app.get("/items/{item_id}")
