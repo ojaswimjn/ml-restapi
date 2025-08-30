@@ -70,10 +70,13 @@ async def create_upload_singlefile(
         text = extract_text_from_file(file_path)
         if strategy == "document":
             chunks = document_based_chunking(text)
-            embedding = chunk_encoding(chunks)
 
         else:  # strategy == "fixed"
             chunks = fixed_overlap_chunking(text, chunk_size=max_chunk_size, overlap=overlap)
+
+        embedding = chunk_encoding(chunks)
+        embedding_list = embedding.tolist()
+
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to chunk file: {str(e)}")
 
@@ -93,6 +96,7 @@ async def create_upload_singlefile(
             "count": len(chunks),
         },
         "chunks": chunks,
+        "embedding" : embedding_list
 
     }
 # @app.get("/items/{item_id}")
