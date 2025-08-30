@@ -24,7 +24,7 @@ def document_based_chunking(text):
     
     return chunks
 
-def fixed_overlap_chunking(text, chunk_size=500, overlap=50):
+def fixed_overlap_chunking(text, chunk_size=100, overlap=50):
     chunks = []
     start = 0
     text_length = len(text)
