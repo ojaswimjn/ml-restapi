@@ -74,7 +74,7 @@ async def create_upload_singlefile(
         else:  # strategy == "fixed"
             chunks = fixed_overlap_chunking(text, chunk_size=max_chunk_size, overlap=overlap)
 
-        embedding = chunk_encoding(chunks,unique_filename)
+        embedding = chunk_encoding(chunks,unique_filename, file.filename)
         embedding_list = embedding.tolist()
 
     except Exception as e:
