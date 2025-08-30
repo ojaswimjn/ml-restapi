@@ -1,9 +1,9 @@
 from sentence_transformers import SentenceTransformer
 from typing import List
-import pinecone
-
+from pinecone import Pinecone
 model = SentenceTransformer("all-MiniLM-L6-v2")
-pc = pinecone(api_key="pcsk_2jm8Dc_ENksjcQo3t1Fsag9XUG8TWHCZtFSMcJrXjAw4J6HTDmrynTeYKZa67LpCvjQc8D pinecone")
+pc = Pinecone(api_key="pcsk_672f8H_DDCUWftvGkUx8RKa634DmuoRfh3h2oYTqo7BGRt4Cu3ks7HoJscTfLUrLM3VkTJ")
+print(pc.list_indexes())  # should print your indexes
 
 index_name = "dev-quickstart-py"
 index = pc.Index(index_name)
