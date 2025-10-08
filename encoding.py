@@ -2,9 +2,12 @@ from sentence_transformers import SentenceTransformer
 from typing import List
 from pinecone import Pinecone
 from db import collection
+from dotenv import load_dotenv
 
+load_dotenv()
+api_key = os.getenv("API_KEY")
 model = SentenceTransformer("all-MiniLM-L6-v2")
-pc = Pinecone(api_key="pcsk_672f8H_DDCUWftvGkUx8RKa634DmuoRfh3h2oYTqo7BGRt4Cu3ks7HoJscTfLUrLM3VkTJ")
+pc = Pinecone(api_key)
 
 index_name = "dev-quickstart-py"
 index = pc.Index(index_name)
